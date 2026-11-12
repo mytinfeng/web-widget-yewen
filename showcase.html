@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>像素功夫小宠 · 8BIT KUNGFU PET</title>
+<style>
+:root{
+  --bg:#f2ecdd; --ink:#25252d; --ink2:#4a4a55; --paper:#fffaf0;
+  --line:#cdbfa2; --accent:#b34a30; --green:#3f7a63; --gold:#c3922f;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  min-height:100vh; padding:26px 16px 40px; color:var(--ink);
+  font-family:"Courier New",Consolas,monospace,"Microsoft YaHei","PingFang SC",sans-serif;
+  background:
+    repeating-linear-gradient(0deg,transparent 0 15px,rgba(60,50,30,.025) 15px 16px),
+    repeating-linear-gradient(90deg,transparent 0 15px,rgba(60,50,30,.025) 15px 16px),
+    var(--bg);
+  display:flex; align-items:flex-start; justify-content:center;
+}
+.app{width:min(1020px,100%); background:var(--paper); border:4px solid var(--ink); box-shadow:12px 12px 0 rgba(37,37,45,.16)}
+.titlebar{
+  background:var(--ink); color:#fff4dc; padding:10px 14px; display:flex; align-items:center; gap:12px;
+  border-bottom:4px solid var(--ink); flex-wrap:wrap;
+}
+.titlebar h1{font-size:15px; margin:0; letter-spacing:2px; white-space:nowrap}
+.titlebar .sub{font-size:11px; opacity:.65; letter-spacing:1px}
+.titlebar .grow{flex:1}
+.led{width:10px;height:10px;background:#e8b54b;box-shadow:0 0 0 2px #000;display:inline-block;margin-right:6px}
+.tbtn{
+  background:#fff4dc;color:var(--ink);border:2px solid #000;padding:5px 9px;font:inherit;font-size:11px;
+  cursor:pointer;box-shadow:3px 3px 0 #000; letter-spacing:1px;
+}
+.tbtn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #000}
+main{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:0}
+.screen-wrap{padding:18px;border-right:4px solid var(--ink);min-width:0;display:flex;flex-direction:column;justify-content:center}
+.screen{
+  position:relative;width:min(100%,480px);margin:0 auto;aspect-ratio:1;
+  border:4px solid var(--ink);background:#f7f0df;box-shadow:6px 6px 0 rgba(37,37,45,.14);overflow:hidden;
+}
+canvas{display:block;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;cursor:grab}
+canvas:active{cursor:grabbing}
+.scan{position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(90,70,40,.045) 0 2px,transparent 2px 4px);}
+.bubble{
+  position:absolute;left:14px;top:14px;max-width:74%;background:#fffdf5;color:var(--ink);
+  border:3px solid var(--ink);padding:7px 10px;font-size:12px;font-weight:bold;line-height:1.4;
+  box-shadow:4px 4px 0 rgba(37,37,45,.25);pointer-events:none;letter-spacing:.5px;
+}
+.bubble:after{content:"";position:absolute;left:16px;bottom:-9px;width:8px;height:8px;background:#fffdf5;
+  border-right:3px solid var(--ink);border-bottom:3px solid var(--ink)}
+.bubble.pop{animation:pop .18s steps(2)}
+@keyframes pop{from{transform:scale(.85)}to{transform:scale(1)}}
+.tag{position:absolute;right:10px;bottom:10px;background:rgba(255,250,240,.92);border:2px solid var(--ink);
+  padding:3px 7px;font-size:10px;font-weight:bold;letter-spacing:1px;pointer-events:none}
+.hint{margin:12px auto 0;max-width:480px;font-size:11px;color:#7b725f;line-height:1.6;text-align:center}
+.panel{padding:18px 16px;display:flex;flex-direction:column;gap:16px}
+.block{border:3px solid var(--ink);background:#fffdf6;padding:12px;box-shadow:4px 4px 0 rgba(37,37,45,.12)}
+.block h2{margin:0 0 10px;font-size:12px;letter-spacing:2px;border-bottom:2px dashed var(--line);padding-bottom:7px}
+.stat{margin-bottom:10px}
+.stat:last-child{margin-bottom:0}
+.stat .row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px}
+.bar{display:flex;gap:2px}
+.bar i{flex:1;height:11px;background:#e7ddc7;border:1px solid #c8bda3;display:block}
+.bar i.on{background:var(--ink2);border-color:var(--ink)}
+.bar.mood i.on{background:#c25a3c;border-color:#8c3a25}
+.bar.energy i.on{background:#4b8a67;border-color:#2c6249}
+.bar.tea i.on{background:#5b8fb0;border-color:#366582}
+.lv{display:flex;justify-content:space-between;font-size:11px;margin-top:10px;border-top:1px dashed var(--line);padding-top:8px}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn{
+  font:inherit;font-size:11px;font-weight:bold;cursor:pointer;background:#fffaf0;color:var(--ink);
+  border:3px solid var(--ink);padding:9px 4px;box-shadow:3px 3px 0 var(--ink);letter-spacing:.5px;
+  transition:transform .06s;
+}
+.btn:hover{background:#fff0cd}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.btn.wide{grid-column:1/-1}
+.btn.on{background:var(--ink);color:#fff4dc;box-shadow:3px 3px 0 #9a8a6a}
+.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.gallery .btn{font-size:10px;padding:7px 2px;border-width:2px;box-shadow:2px 2px 0 var(--ink)}
+.gallery .btn.cur{background:#f6d99a}
+.log{font-size:10px;line-height:1.8;color:#6f6857;height:96px;overflow:hidden}
+.log div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.log b{color:var(--accent)}
+footer{border-top:4px solid var(--ink);padding:9px 14px;font-size:10px;color:#8a8170;letter-spacing:1px;
+  display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;background:#f7f1e3}
+@media(max-width:760px){
+  main{grid-template-columns:1fr}
+  .screen-wrap{border-right:0;border-bottom:4px solid var(--ink)}
+  body{padding:12px 8px 24px}
+  .app{box-shadow:6px 6px 0 rgba(37,37,45,.16)}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="titlebar">
+    <span class="led"></span>
+    <h1>8BIT 功夫小宠</h1>
+    <span class="sub">/ KUNGFU DESKTOP PET v1.0</span>
+    <span class="grow"></span>
+    <button class="tbtn" id="autoBtn">AUTO: ON</button>
+    <button class="tbtn" id="soundBtn">SOUND: OFF</button>
+  </header>
+
+  <main>
+    <section class="screen-wrap">
+      <div class="screen" id="screen">
+        <canvas id="cv" width="80" height="80"></canvas>
+        <div class="scan"></div>
+        <div class="bubble" id="bubble">……</div>
+        <div class="tag" id="tag">● 待机中</div>
+      </div>
+      <p class="hint">点击小宠互动 · 按住拖动可牵着它走 · 鼠标移动它会看你<br>快捷键 1–9 切换动作 / 空格 练功 / T 递茶 / A 自动托管</p>
+    </section>
+
+    <aside class="panel">
+      <div class="block">
+        <h2>■ 状态 STATUS</h2>
+        <div class="stat"><div class="row"><span>心情 MOOD</span><b id="moodV">80</b></div><div class="bar mood" id="moodBar"></div></div>
+        <div class="stat"><div class="row"><span>体力 ENERGY</span><b id="energyV">86</b></div><div class="bar energy" id="energyBar"></div></div>
+        <div class="stat"><div class="row"><span>茶意 TEA</span><b id="teaV">62</b></div><div class="bar tea" id="teaBar"></div></div>
+        <div class="lv"><span>修行 EXP <b id="expV">0</b></span><span>LV.<b id="lvV">1</b> · <span id="curV">待机</span></span></div>
+      </div>
+
+      <div class="block">
+        <h2>■ 互动 ACTION</h2>
+        <div class="btns">
+          <button class="btn" data-act="pat">摸摸头</button>
+          <button class="btn" data-act="tea">递杯茶</button>
+          <button class="btn" data-act="train">练一趟拳</button>
+          <button class="btn" data-act="dummy">打木人桩</button>
+          <button class="btn" data-act="kick">来个高踢</button>
+          <button class="btn" data-act="wake">叫醒它</button>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2>■ 动作图鉴 POSES</h2>
+        <div class="gallery" id="gallery"></div>
+      </div>
+
+      <div class="block">
+        <h2>■ 小宠日志 LOG</h2>
+        <div class="log" id="log"></div>
+      </div>
+    </aside>
+  </main>
+
+  <footer><span><a href="index.html" style="color:inherit">← 回到挂件版</a> · NO SPRITES · 100% CANVAS PIXELS DRAWN BY JS</span><span>80×80 FC/NES GRID → ×6 NEAREST-NEIGHBOR</span></footer>
+</div>
+
+<script>
+"use strict";
+/* ---------------- 像素画布基础 ---------------- */
+const cv=document.getElementById('cv'), g=cv.getContext('2d');
+g.imageSmoothingEnabled=false;
+/* FC/NES 模式：80×80 逻辑网格；所有姿态坐标仍沿用 160 基准，绘制时统一量化成 2×2 大颗粒 */
+const PX=2;
+const C={
+  ink:'#0e0e12', inkHi:'#45454e', jacket:'#1b1b21', cloth:'#2e2e37', clothHi:'#45454f', clothLo:'#141418',
+  skin:'#ff9d55', skinHi:'#ffc184', skinSh:'#d9713a', white:'#ffffff', shoe:'#0e0e12',
+  wood:'#b5762f', woodHi:'#e2a044', woodDk:'#7a4718', tea:'#f2fbff', teaBlue:'#2b7fc4',
+  wall:'#fbe6a8', floor:'#e0b268', floorLine:'#b9863d', green:'#3f9a3f', greenHi:'#70c74f',
+  red:'#e0361c', gold:'#ffd12b', shadow:'#c99a4e',
+  fire:'#ff8a1e', fireHi:'#ffd83d', fireLo:'#e34b12'
+};
+const sn=v=>Math.round(v/PX);
+function R0(x,y,w,h,c){g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)));}
+function R(x,y,w,h,c){R0(sn(x),sn(y),sn(w),sn(h),c);}
+function E(cx,cy,rx,ry,c){
+  cx=sn(cx);cy=sn(cy);rx=sn(rx);ry=sn(ry);
+  for(let dy=-ry;dy<=ry;dy++){
+    const t=1-(dy*dy)/(ry*ry);if(t<0)continue;
+    const hw=Math.max(0,Math.floor(rx*Math.sqrt(t)));
+    R0(cx-hw,cy+dy,hw*2+1,1,c);
+  }
+}
+function LN(x1,y1,x2,y2,r,c){
+  const d=Math.hypot(x2-x1,y2-y1),n=Math.max(1,Math.ceil(d/PX*1.7));
+  for(let i=0;i<=n;i++){const t=i/n;E(x1+(x2-x1)*t,y1+(y2-y1)*t,r,r,c);}
+}
+function GLY(rows,x,y,s,c){
+  const ox=sn(x),oy=sn(y);
+  for(let j=0;j<rows.length;j++)for(let i=0;i<rows[j].length;i++)
+    if(rows[j][i]==='#')R0(ox+i*s,oy+j*s,s,s,c);
+}
+const Z3=["###","..#",".#.","#..","###"];
+const HEART=[".#.#.","#####","#####",".###","..#."];
+const STAR=[".#.","###",".#."];
+const WU=["..#..#..",".##.##..","######..","..##....",".#..#...","##.###..","#...#...",".#..##..",".....#.."];
+
+/* ---------------- 姿态预设 ---------------- */
+const A={
+  downL:[66,76,59,92,60,105,'fist'],       downR:[94,76,101,92,100,105,'fist'],
+  behindL:[66,76,58,90,64,100,'hide'],     behindR:[94,76,102,90,96,100,'hide'],
+  waistL:[66,76,60,88,72,92,'fist'],       waistR:[94,76,100,88,88,92,'fist'],
+  guardL:[66,76,58,84,64,74,'palm'],       guardR:[94,76,102,84,96,74,'palm'],
+  palmR:[94,76,110,78,130,72,'palm'],       palmL:[66,76,50,78,30,72,'palm'],
+  punchR:[94,76,112,80,134,76,'fist'],
+  hitL:[66,76,48,82,38,78,'fist'],          hitPalmL:[66,76,50,80,42,76,'palm'],
+  cupR:[94,78,106,80,86,60,'cup'],          cupLowR:[94,78,104,88,90,76,'cup'],
+  yawnL:[66,76,58,78,72,60,'fist'],
+  upL:[66,76,54,62,52,56,'fist'],           upR:[94,76,106,62,108,56,'fist'],
+  swL1:[66,76,58,92,62,104,'fist'],         swL2:[66,76,60,90,70,102,'fist'],
+  swR1:[94,76,102,90,90,102,'fist'],        swR2:[94,76,100,92,98,104,'fist'],
+  /* 参考图起手式：左手立掌护胸，右手握拳收腰 */
+  guardPalmL:[66,78,58,94,60,84,'palm'],    hipFistR:[94,78,103,94,96,100,'fist'],
+  guardPalmR:[94,78,102,94,100,84,'palm'],  hipFistL:[66,78,57,94,64,100,'fist']
+};
+const L={
+  stand:[[72,98,71,112,72,122,74,126],[88,98,89,112,88,122,86,126]],
+  stance:[[70,96,63,111,60,123,61,126],[90,96,97,111,100,123,99,126]],
+  horse:[[72,98,58,113,52,124,48,127],[88,98,102,113,108,124,112,127]],
+  sit:[[72,98,62,113,64,124,67,127],[88,98,98,113,100,124,103,127]],
+  kick:[[72,98,70,114,70,124,72,127],[88,98,106,90,120,80,124,76]],
+  kickHigh:[[72,98,70,114,70,124,72,127],[88,98,110,82,128,68,132,64]],
+  walkA:[[72,98,66,114,64,124,62,127],[88,98,94,114,96,124,98,127]],
+  walkB:[[72,98,78,114,80,124,82,127],[88,98,84,114,82,124,80,127]]
+};
+function P(o){return Object.assign({
+  ox:0,oy:0,ly:0,hx:0,hy:0,eye:'stern',mouth:'flat',
+  armL:A.guardPalmL,armR:A.hipFistR,legs:L.stance,prop:'none',fx:'none'
+},o||{});}
+
+/* ---------------- 动作序列 ---------------- */
+const F=(p,tw,hold,extra)=>Object.assign({p:p,tw:tw,hold:hold},extra||{});
+const ANIM={
+  idle:{label:'待机',loop:true,frames:[
+    F(P(),0,1200,{say:'……'}),
+    F(P({oy:1,hy:1}),480,900),
+    F(P({eye:'closed'}),60,120),
+    F(P({hx:3,oy:1}),420,760,{say:'风平浪静。'}),
+    F(P({hx:-3}),480,760),
+    F(P({legs:L.stand,armL:A.behindL,armR:A.behindR}),480,1400,{say:'（双手背在身后）'}),
+    F(P({legs:L.stand,armL:A.behindL,armR:A.behindR,eye:'closed'}),80,120),
+    F(P(),480,700)
+  ]},
+  bored:{label:'无聊',loop:true,frames:[
+    F(P({hx:2,hy:2,eye:'half',mouth:'frown',fx:'dots'}),420,1200,{say:'好无聊……'}),
+    F(P({hx:-3,hy:2,eye:'half',mouth:'frown'}),500,1000),
+    F(P({hy:3,eye:'closed',mouth:'yawn',armL:A.yawnL,armR:A.downR,fx:'dots'}),320,900,{say:'哈——欠……'}),
+    F(P({oy:6,legs:L.horse,armL:A.waistL,armR:A.waistR,eye:'half',mouth:'frown'}),520,1100,{say:'没人陪练吗？'}),
+    F(P({hx:2,hy:2,eye:'half',mouth:'frown',fx:'dots'}),520,1200,{say:'……'})
+  ]},
+  tea:{label:'喝茶',loop:false,frames:[
+    F(P({prop:'tea',oy:8,legs:L.sit,armR:A.cupLowR}),480,700,{say:'先歇一口气。',sfx:'tea'}),
+    F(P({prop:'tea',oy:8,legs:L.sit,armR:A.cupR,eye:'closed',mouth:'o',fx:'steam'}),460,820,{say:'嗯，好茶。'}),
+    F(P({prop:'tea',oy:8,legs:L.sit,armR:A.cupR,eye:'closed',mouth:'smile',hy:-1,fx:'steam'}),320,700),
+    F(P({prop:'tea',oy:8,legs:L.sit,armR:A.cupLowR,eye:'stern',mouth:'flat'}),460,620,{say:'再练一轮。'}),
+    F(P({oy:0,legs:L.stand,armR:A.downR}),500,420)
+  ]},
+  punch:{label:'练拳',loop:false,frames:[
+    F(P({oy:6,legs:L.horse,armL:A.waistL,armR:A.guardR}),240,260,{say:'咏春，起手。'}),
+    F(P({oy:6,legs:L.horse,armL:A.waistL,armR:A.punchR,fx:'speed'}),130,230,{sfx:'hit',say:'哈！'}),
+    F(P({oy:6,legs:L.horse,armL:A.guardL,armR:A.waistR,fx:'impact'}),150,240,{sfx:'hit'}),
+    F(P({oy:6,legs:L.horse,armL:A.waistL,armR:A.palmR,fx:'speed'}),150,250,{sfx:'hit',say:'寸劲！'}),
+    F(P({oy:6,legs:L.horse,armL:A.waistL,armR:A.guardR}),260,380)
+  ]},
+  dummy:{label:'木人桩',loop:false,frames:[
+    F(P({prop:'dummy',ox:-4,oy:6,legs:L.horse,armL:A.guardL,armR:A.waistR,hx:-3}),260,300,{say:'木人桩，接招。'}),
+    F(P({prop:'dummy',ox:-4,oy:6,legs:L.horse,armL:A.hitL,armR:A.waistR,hx:-4,fx:'impact'}),130,200,{sfx:'hit'}),
+    F(P({prop:'dummy',ox:-4,oy:6,legs:L.horse,armL:A.guardL,armR:A.waistR,hx:-3}),160,180),
+    F(P({prop:'dummy',ox:-4,oy:6,legs:L.horse,armL:A.hitPalmL,armR:A.waistR,hx:-4,fx:'speed'}),130,220,{sfx:'hit',say:'一、二！'}),
+    F(P({prop:'dummy',ox:-4,oy:6,legs:L.horse,armL:A.guardL,armR:A.waistR,hx:-3}),260,320)
+  ]},
+  kick:{label:'高踢腿',loop:false,frames:[
+    F(P({ox:2,legs:L.kick,armL:A.waistL,armR:A.guardR,hx:2}),300,360,{say:'喝——！'}),
+    F(P({ox:4,oy:-2,legs:L.kickHigh,armL:A.waistL,armR:A.guardR,hx:3,fx:'speed'}),220,460,{sfx:'hit'}),
+    F(P({legs:L.stand}),420,380)
+  ]},
+  happy:{label:'开心',loop:false,frames:[
+    F(P({oy:-5,ly:-5,eye:'happy',mouth:'smile',armL:A.upL,armR:A.upR,fx:'heart'}),150,380,{say:'嘿嘿！',sfx:'happy'}),
+    F(P({oy:0,eye:'happy',mouth:'smile',armL:A.behindL,armR:A.behindR,fx:'heart'}),220,620),
+    F(P({eye:'happy',mouth:'flat'}),360,560)
+  ]},
+  sleep:{label:'睡觉',loop:true,frames:[
+    F(P({eye:'sleep',mouth:'o',hy:3,oy:2,fx:'zzz'}),620,1400,{say:'Zzz……'}),
+    F(P({eye:'sleep',mouth:'o',hy:4,oy:3,fx:'zzz'}),620,1400),
+    F(P({eye:'sleep',mouth:'flat',hy:3,oy:2,fx:'zzz'}),620,1400)
+  ]},
+  behind:{label:'背手',loop:true,frames:[
+    F(P({armL:A.behindL,armR:A.behindR}),420,1300,{say:'……'}),
+    F(P({armL:A.behindL,armR:A.behindR,eye:'closed'}),90,130),
+    F(P({armL:A.behindL,armR:A.behindR,hy:1,hx:2}),520,1000,{say:'静。'})
+  ]},
+  walk:{label:'散步',loop:true,frames:[
+    F(P({legs:L.walkA,armL:A.swL1,armR:A.swR1}),130,130),
+    F(P({legs:L.walkB,oy:-1,armL:A.swL2,armR:A.swR2}),130,130)
+  ]}
+};
+const GALLERY=['idle','bored','tea','punch','dummy','kick','happy','sleep','behind'];
+
+/* ---------------- 场景与角色绘制 ---------------- */
+let aura=0;
+function drawAura(now){
+  R(0,0,160,126,C.fire);
+  const cx=80,cy=72;
+  for(let i=0;i<16;i++){
+    const a=i*Math.PI*2/16+.12;
+    for(let d=16;d<112;d+=9){
+      const x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d,w=7+Math.floor(d/9)%3*2;
+      R(x,y,w,w,(i%2)?C.fireHi:C.fireLo);
+    }
+  }
+  R(4,26,20,8,C.white);R(136,18,18,8,C.white);
+  R(2,88,14,10,C.white);R(140,92,14,10,C.white);
+}
+function drawScene(p,now){
+  R(0,0,160,160,C.wall);
+  if(aura>0.02){g.globalAlpha=Math.min(1,aura);drawAura(now);g.globalAlpha=1;}
+  for(let x=8;x<160;x+=32)for(let y=12;y<124;y+=24)R(x,y,1,1,'#f3d98f');
+  R(0,124,160,2,'#d9a94f');R(0,126,160,1,'#ffe9ab');
+  /* 挂轴 */
+  R(12,10,34,3,C.wood);R(12,58,34,3,C.wood);
+  R(14,13,30,45,C.woodDk);R(16,15,26,41,'#fff6dc');R(18,17,22,37,'#fbe8b6');
+  GLY(WU,20,24,1,'#5a3212');
+  R(20,52,18,1,'#a9825a');
+  /* 窗 */
+  R(110,14,44,50,C.woodDk);R(112,16,40,46,'#bfe6f2');R(114,18,36,42,'#d6f2fa');
+  R(114,18,14,20,'#eeffff');E(130,46,9,3,'#ffffff');E(140,43,6,2,'#ffffff');
+  R(131,16,2,46,C.wood);R(112,38,40,2,C.wood);
+  R(110,14,44,2,C.woodHi);R(110,62,44,2,C.woodHi);
+  /* 地板 */
+  R(0,132,160,28,C.floor);R(0,132,160,1,C.floorLine);
+  for(let x=0;x<160;x+=20)R(x,133,1,27,'#c99a4e');
+  R(0,139,160,1,'#eec57c');
+  /* 盆栽 */
+  LN(146,120,146,98,1,C.green);LN(146,112,138,102,1,C.green);LN(146,108,152,98,1,C.green);
+  E(137,101,5,2,C.greenHi);E(153,97,5,2,C.green);E(146,96,4,2,C.greenHi);E(140,94,3,2,C.green);
+  R(139,119,16,10,C.wood);R(137,117,20,3,C.woodHi);R(139,119,2,10,C.woodHi);R(152,119,2,10,C.woodDk);
+  R(140,128,14,2,C.woodDk);
+  /* 影子 */
+  E(80+p.ox,133,25,3,C.shadow);
+}
+function drawProps(p,now){
+  if(p.prop==='tea'){
+    /* 小凳 */
+    R(60,112,40,4,C.woodHi);R(60,116,40,3,C.woodDk);
+    R(64,119,5,13,C.wood);R(91,119,5,13,C.wood);
+    R(62,116,36,1,'#8a5c33');
+    /* 茶几（挪到角色右侧，不再被身体挡住） */
+    R(112,100,38,4,C.woodHi);R(112,104,38,3,C.woodDk);
+    R(115,107,4,25,C.wood);R(143,107,4,25,C.wood);
+    R(115,120,32,2,C.woodDk);
+    /* 青瓷茶壶 */
+    E(126,94,8,6,C.ink);E(126,94,7,5,C.tea);
+    R(119,92,15,1,C.teaBlue);E(126,97,5,1,'#ffffff');
+    R(133,93,5,1,C.teaBlue);R(137,91,2,3,C.teaBlue);
+    E(126,88,3,1,C.teaBlue);R(124,86,5,2,C.gold);
+  }
+  if(p.prop==='dummy'){
+    /* 底座 */
+    R(6,128,42,6,C.woodDk);R(4,134,46,3,C.wood);
+    /* 立柱 */
+    R(16,58,14,70,C.wood);R(18,58,3,70,C.woodHi);R(27,58,2,70,C.woodDk);
+    R(14,54,18,5,C.woodHi);R(16,56,14,2,'#c08a52');
+    /* 三根横臂伸向角色 */
+    R(28,78,15,5,C.woodHi);E(41,80,3,3,C.woodDk);
+    R(28,94,13,5,C.woodHi);E(39,96,3,3,C.woodDk);
+    R(28,110,17,4,C.woodHi);
+    /* 木纹 */
+    R(20,64,1,62,'#8a5b31');R(24,70,1,54,'#8a5b31');
+  }
+}
+/* ============ 角色：手绘点阵（1 字符 = 1 个 FC 像素） ============ */
+const PAL={k:'#0d0d10',K:'#26262e',h:'#3f3f49',s:'#ff9d55',S:'#ffc184',d:'#d9713a',w:'#ffffff'};
+/* 24×24：黑短发（碎发尖 + 两侧鬓角）／橙色方脸／粗黑倒竖眉／高领 */
+const HEAD=[
+"....kkk...kkkk...kkk....",
+"...kkkkk.kkkkk.kkkkk...",
+"..kkkkkkkkkkkkkkkkkkkk..",
+".kkkkkkkkkkkkkkkkkkkkkk.",
+"kkkkkkkkkkkkkkkkkkkkkkkk",
+"kkkkkkkkkkkkkkkkkkkkkkkk",
+".kkkkkkssssssssssskkkkkk",
+".kkksssssssssssssssskkk.",
+".kkkskkkksssssskkkkskkk.",
+".kkkssskkkksskkkkssskkk.",
+".kkksssssssssssssssskkk.",
+".kkksssssssssssssssskkk.",
+".kkksssssssssssssssskkk.",
+".kkksssssssssssssssskkk.",
+".kkksssssssssssssssskkk.",
+".kkksssssssssssssssskkk.",
+".kkksssssssssssssssskkk.",
+".kkksssssssssssssssskkk.",
+"..kksssssssssssssssskk..",
+"..kksssssssssssssssskk..",
+"...kssssssssssssssssk...",
+".........ksssssk........",
+".........ksssssk........",
+"......kkkkkkkkkkkk......"
+];
+/* 方形笔触粗线：r 为半径（画布像素），端点是 160 基准坐标 */
+function SQ(x1,y1,x2,y2,r,c){
+  const d=Math.hypot(x2-x1,y2-y1),n=Math.max(1,Math.round(d/2+1));
+  for(let i=0;i<=n;i++){
+    const t=i/n;
+    R0(Math.round((x1+(x2-x1)*t)/2)-r,Math.round((y1+(y2-y1)*t)/2)-r,r*2,r*2,c);
+  }
+}
+function drawFaceOn(x0,y0,p){
+  const ey=y0+11;
+  for(let s=0;s<2;s++){
+    const x=x0+(s?13:6), inner=s?-1:1;
+    if(p.eye==='happy'){
+      R0(x,ey+2,5,1,C.ink);R0(x+1,ey+1,3,1,C.ink);
+      R0(x-1,ey+3,1,1,C.ink);R0(x+5,ey+3,1,1,C.ink);
+    }else if(p.eye==='closed'||p.eye==='sleep'){
+      R0(x,ey+2,5,1,C.ink);R0(x+1,ey+1,3,1,C.ink);
+      R0(x+2,ey+3,1,1,C.ink);
+    }else if(p.eye==='half'){
+      R0(x,ey+1,5,1,C.ink);
+      R0(x,ey+2,5,2,C.white);
+      R0(x+(inner>0?2:1),ey+2,2,2,C.ink);
+    }else{
+      /* 参考图：方框白眼 + 靠内的大黑瞳 */
+      R0(x,ey+1,5,3,C.white);
+      R0(x+1,ey,4,1,C.white);
+      R0(x+(inner>0?2:1),ey+1,2,3,C.ink);
+    }
+  }
+  /* 鼻：一点阴影 */
+  R0(x0+11,y0+15,2,1,C.skinSh);
+  /* 嘴：小短块 */
+  const mx=x0+10,my=y0+17;
+  switch(p.mouth){
+    case 'frown':R0(mx,my+1,4,1,C.ink);R0(mx-1,my,1,1,C.ink);R0(mx+4,my,1,1,C.ink);break;
+    case 'smile':R0(mx,my,4,1,C.ink);R0(mx-1,my+1,1,1,C.ink);R0(mx+4,my+1,1,1,C.ink);break;
+    case 'yawn':R0(mx,my,4,3,C.ink);R0(mx+1,my+1,2,1,'#a8392a');break;
+    case 'o':R0(mx+1,my,2,2,C.ink);break;
+    default:R0(mx,my,4,1,C.ink);
+  }
+}
+function drawHead(cx,cy,p){
+  const x0=sn(cx)-12,y0=sn(cy)-12;
+  for(let j=0;j<HEAD.length;j++){
+    const row=HEAD[j];
+    for(let i=0;i<row.length;i++){
+      const col=PAL[row[i]];
+      if(col)R0(x0+i,y0+j,1,1,col);
+    }
+  }
+  drawFaceOn(x0,y0,p);
+}
+/* 黑唐装：粗黑勾边 + 平涂 + 白色门襟滚边 + 白盘扣 */
+function drawTorso(ox,oy){
+  const cx=80+ox;
+  const rows=[[70,17],[72,19],[74,21],[76,22],[78,22],[80,22],[82,21],[84,21],[86,20],
+              [88,20],[90,20],[92,20],[94,20],[96,21],[98,21],[100,21],[102,21],[104,21]];
+  for(const [y,w] of rows){
+    R(cx-w,y+oy,w*2,2,C.ink);
+    R(cx-w+2,y+oy,w*2-4,2,C.jacket);
+  }
+  /* 白立领 */
+  R(cx-6,70+oy,12,2,C.white);
+  R(cx-1,71+oy,2,1,C.ink);
+  /* 门襟滚边：领口小斜线 + 竖直压襟线 */
+  for(let i=0;i<3;i++)R(cx+5-i*2,74+i*2+oy,2,2,C.white);
+  R(cx-1,80+oy,2,18,C.white);
+  /* 单层布褶 */
+  R(cx-13,80+oy,2,10,C.clothHi);R(cx+10,86+oy,2,8,C.clothHi);
+  R(cx-16,104+oy,32,2,C.ink);
+  /* 白盘扣 */
+  R(cx+2,86+oy,3,2,C.white);R(cx+2,95+oy,3,2,C.white);
+}
+/* 腿：粗短方笔触 + 黑布鞋白鞋底 */
+function drawLegs(legs,ox,oy){
+  for(const l of legs){
+    const hpX=l[0]+ox,hpY=l[1]+oy,knX=l[2]+ox,knY=l[3]+oy,
+          anX=l[4]+ox,anY=l[5]+oy,ftX=l[6]+ox,ftY=l[7]+oy;
+    SQ(hpX,hpY,knX,knY,5,C.ink);SQ(knX,knY,anX,anY,4,C.ink);
+    SQ(hpX,hpY,knX,knY,4,C.cloth);SQ(knX,knY,anX,anY,3,C.cloth);
+    const fx=sn(ftX),fy=sn(ftY);
+    /* 裤脚 + 黑布鞋（白鞋底） */
+    R0(fx-4,fy-8,8,5,C.ink);R0(fx-3,fy-7,6,4,C.cloth);
+    R0(fx-6,fy-3,13,8,C.ink);
+    R0(fx-5,fy-3,11,5,C.shoe);
+    R0(fx-4,fy-3,3,1,C.clothHi);
+    R0(fx-5,fy+2,11,2,C.white);
+    R0(fx-5,fy+4,11,1,C.ink);
+  }
+}
+/* 袖：黑袖 + 白袖口 + 橙手 */
+function drawHand(x,y,type){
+  const px=sn(x),py=sn(y);
+  if(type==='palm'){
+    /* 立掌：先画 3 根分开的手指，再压上掌心，指缝自然露黑 */
+    for(const dx of [-3,0,3])R0(px+dx,py-8,2,6,C.skin);
+    R0(px-4,py-4,9,9,C.ink);R0(px-3,py-3,7,7,C.skin);
+    R0(px-3,py+2,7,1,C.skinSh);
+  }else if(type==='cup'){
+    R0(px-3,py-3,6,6,C.ink);R0(px-2,py-2,4,4,C.skin);
+  }else{
+    /* 握拳：方拳 + 指节线 */
+    R0(px-3,py-4,7,7,C.ink);R0(px-2,py-3,5,5,C.skin);
+    R0(px-2,py-2,5,1,C.skinSh);
+    R0(px-2,py+1,5,1,C.skinSh);
+    R0(px-2,py-3,1,5,C.skinSh);
+  }
+}
+function drawArm(a,ox,oy,back){
+  const sx1=a[0]+ox,sy1=a[1]+oy,ex1=a[2]+ox,ey1=a[3]+oy,hx1=a[4]+ox,hy1=a[5]+oy;
+  const hand=a[6],col=back?C.clothLo:C.cloth;
+  SQ(sx1,sy1,ex1,ey1,4,C.ink);SQ(ex1,ey1,hx1,hy1,4,C.ink);
+  SQ(sx1,sy1,ex1,ey1,3,col);SQ(ex1,ey1,hx1,hy1,3,col);
+  /* 袖面高光，让袖子从躯干上分离出来 */
+  if(!back){
+    R0(sn((sx1+ex1)/2)-2,sn((sy1+ey1)/2)-3,4,2,C.clothHi);
+    R0(sn((ex1+hx1)/2)-2,sn((ey1+hy1)/2)-3,4,2,C.clothHi);
+  }
+  if(hand==='hide')return;
+  /* 白袖口：贴着手腕的一道白边 */
+  const wx=sn(ex1+(hx1-ex1)*.45),wy=sn(ey1+(hy1-ey1)*.45);
+  R0(wx-4,wy-1,9,4,C.ink);
+  R0(wx-3,wy,7,2,C.white);
+  drawHand(hx1,hy1,hand);
+}
+function drawPet(p,now){
+  const ox=p.ox,oy=p.oy,HX=80+ox+p.hx,HY=48+oy+p.hy;
+  drawLegs(p.legs,ox,p.ly||0);
+  for(const a of [p.armL,p.armR])if(a[6]==='hide')drawArm(a,ox,oy,true);
+  drawTorso(ox,oy);
+  drawHead(HX,HY,p);
+  for(const a of [p.armL,p.armR])if(a[6]!=='hide')drawArm(a,ox,oy,false);
+  if(p.prop==='tea'){
+    const a=p.armR,x=sn(a[4]+ox),y=sn(a[5]+oy);
+    R0(x-3,y-5,7,7,C.ink);
+    R0(x-2,y-4,5,5,C.tea);
+    R0(x-2,y-4,5,1,C.white);
+    R0(x-2,y-1,5,1,C.teaBlue);
+    R0(x+4,y-3,2,3,C.teaBlue);
+  }
+}
+function drawFx(p,now){
+  const t=Math.floor(now/90),f=p.fx,left=(p.prop==='dummy');
+  if(f==='speed'||f==='impact'){
+    const xs=left?4:108;
+    if(f==='speed'){
+      for(let i=0;i<4;i++){
+        const y=72+i*7+((t+i)%2);
+        R(xs+(i%2)*4,y,28-(i%3)*8,1,'#a9a294');
+        R(xs+6+(i%2)*4,y+2,18,1,'#c4bcab');
+      }
+    }else{
+      const cx=left?46:132,cy=76;
+      R(cx-1,cy-9,3,19,'#ffffff');R(cx-9,cy-1,19,3,'#ffffff');
+      R(cx-1,cy-5,3,11,C.gold);R(cx-5,cy-1,11,3,C.gold);
+      for(let i=0;i<4;i++)R(xs+((t+i*7)%34),62+i*9,2,2,C.gold);
+    }
+  }
+  if(f==='steam'){
+    for(let i=0;i<3;i++){
+      const y=54-i*6-(t%3),x=82+Math.sin(now/260+i)*3+i;
+      R(x,y,1,2,'#ffffff');R(x+2,y-2,1,2,'#e6eef0');R(x+1,y-4,1,1,'#ffffff');
+    }
+  }
+  if(f==='zzz'){
+    for(let i=0;i<3;i++){
+      const x=86+i*8+Math.sin(now/500+i)*2,y=40-i*12-(t%5);
+      GLY(Z3,x,y,i===2?2:1,i===2?'#514d61':'#736f83');
+    }
+  }
+  if(f==='heart'){
+    GLY(HEART,102+Math.sin(now/300)*2,34-(t%6),2,C.red);
+    GLY(HEART,120+Math.sin(now/240)*2,50-((t+2)%5),1,'#d97a68');
+    GLY(STAR,60-((t)%3),36,1,C.gold);
+  }
+  if(f==='dots'){
+    for(let i=0;i<3;i++)R(104+i*5,44-((t+i)%3)*2,2,2,'#9c9280');
+  }
+}
+
+/* ---------------- 播放器 / 状态机 ---------------- */
+let animName='idle',frames=ANIM.idle.frames,fi=0,elapsed=0,fromPose=null,mode='loop',onceRet='idle';
+let autoOn=true,soundOn=false,actx=null,idleSec=0,dragX=0,headFollow=0,dragging=false,pointerDown=false,downX=0;
+const S={mood:80,energy:86,tea:62,exp:0};
+const $=id=>document.getElementById(id);
+const bubble=$('bubble'),tag=$('tag'),logEl=$('log');
+function clamp(v){return Math.max(0,Math.min(100,v));}
+function say(txt){
+  bubble.textContent=txt;bubble.classList.remove('pop');void bubble.offsetWidth;bubble.classList.add('pop');
+}
+function logIt(txt){
+  const d=document.createElement('div');d.innerHTML='&gt; '+txt;logEl.prepend(d);
+  while(logEl.children.length>6)logEl.removeChild(logEl.lastChild);
+}
+const TAGS={idle:'● 待机中',bored:'● 有点无聊',tea:'● 品茶中',punch:'● 练拳中',dummy:'● 打木人桩',
+  kick:'● 高踢腿',happy:'● 心情不错',sleep:'● 睡着了',behind:'● 背手站立',walk:'● 被牵着走'};
+function sfx(kind){
+  if(!soundOn)return;
+  try{
+    if(!actx)actx=new (window.AudioContext||window.webkitAudioContext)();
+    const cfg={hit:[170,.09,'square'],tea:[540,.2,'sine'],happy:[680,.14,'square']}[kind]||[320,.09,'square'];
+    const o=actx.createOscillator(),gn=actx.createGain(),n=actx.currentTime;
+    o.type=cfg[2];o.frequency.setValueAtTime(cfg[0],n);
+    if(kind==='happy')o.frequency.exponentialRampToValueAtTime(1150,n+cfg[1]);
+    gn.gain.setValueAtTime(.045,n);gn.gain.exponentialRampToValueAtTime(.0001,n+cfg[1]);
+    o.connect(gn);gn.connect(actx.destination);o.start(n);o.stop(n+cfg[1]);
+  }catch(e){}
+}
+function enterFrame(f){
+  if(f.say)say(f.say);
+  if(f.sfx)sfx(f.sfx);
+}
+function play(name,m,ret){
+  if(!ANIM[name])return;
+  animName=name;frames=ANIM[name].frames;fi=0;elapsed=0;fromPose=null;
+  mode=m||(ANIM[name].loop?'loop':'once');onceRet=ret||'idle';
+  enterFrame(frames[0]);
+  tag.textContent=(autoOn?'':'◆ 手动 · ')+TAGS[name];
+  $('curV').textContent=ANIM[name].label;
+  document.querySelectorAll('.gallery .btn').forEach(b=>b.classList.toggle('cur',b.dataset.name===name));
+}
+let boredFired=false,sleepFired=false;
+function resetIdle(){idleSec=0;boredFired=false;sleepFired=false;}
+function autoRoute(){
+  if(!autoOn){play('idle','loop');return;}
+  if(idleSec>26)play('sleep','loop');
+  else if(idleSec>12)play('bored','loop');
+  else play('idle','loop');
+}
+function lerp(a,b,t){
+  if(typeof a==='number'&&typeof b==='number')return a+(b-a)*t;
+  if(Array.isArray(a)&&Array.isArray(b))return a.map((v,i)=>lerp(v,b[i],t));
+  return b;
+}
+function lerpPose(A,B,t){const o={};for(const k in B)o[k]=(k in A)?lerp(A[k],B[k],t):B[k];return o;}
+function updateAnim(dt){
+  const f=frames[fi];
+  elapsed+=dt;
+  const total=f.tw+f.hold;
+  if(elapsed>=total){
+    if(mode==='once'&&fi===frames.length-1){autoRoute();return;}
+    fromPose=f.p;fi=(fi+1)%frames.length;elapsed=0;
+    const nf=frames[fi];
+    enterFrame(nf);
+    if(!nf.sfx&&(nf.p.fx==='speed'||nf.p.fx==='impact'))sfx('hit');
+  }
+}
+function currentPose(){
+  const f=frames[fi];let p=f.p;
+  if(fromPose&&f.tw>0&&elapsed<f.tw)p=lerpPose(fromPose,f.p,elapsed/f.tw);
+  const q=Object.assign({},p);
+  q.ox+=dragX;q.hx+=headFollow*(dragging?0:1);
+  return q;
+}
+
+/* ---------------- UI / 交互 ---------------- */
+function mkBar(el,n){let s='';for(let i=0;i<n;i++)s+='<i></i>';el.innerHTML=s;}
+['moodBar','energyBar','teaBar'].forEach(id=>mkBar($(id),20));
+function paintStats(){
+  for(const [k,id,bar] of [['mood','moodV','moodBar'],['energy','energyV','energyBar'],['tea','teaV','teaBar']]){
+    $(id).textContent=Math.round(S[k]);
+    const cells=$(bar).children,on=Math.round(S[k]/5);
+    for(let i=0;i<cells.length;i++)cells[i].classList.toggle('on',i<on);
+  }
+  $('expV').textContent=Math.round(S.exp);
+  $('lvV').textContent=1+Math.floor(S.exp/50);
+}
+function bump(k,v){
+  if(k==='exp')S.exp=Math.max(0,S.exp+v);
+  else S[k]=clamp(S[k]+v);
+  paintStats();
+}
+function interact(act){
+  resetIdle();autoOn=true;$('autoBtn').textContent='AUTO: ON';$('autoBtn').classList.add('on');
+  switch(act){
+    case 'pat':bump('mood',10);play('happy','once','idle');logIt('摸摸头，小宠嘴角压不住了');break;
+    case 'tea':bump('tea',28);bump('energy',6);bump('mood',4);play('tea','once','idle');logIt('递上一杯热茶 <b>茶意 +28</b>');break;
+    case 'train':bump('energy',-10);bump('mood',5);bump('exp',8);play('punch','once','idle');logIt('打了一套咏春 <b>EXP +8</b>');break;
+    case 'dummy':bump('energy',-9);bump('mood',3);bump('exp',10);play('dummy','once','idle');logIt('木人桩挨了一顿 <b>EXP +10</b>');break;
+    case 'kick':bump('energy',-7);bump('exp',6);play('kick','once','idle');logIt('一记高踢腿，带起一阵风');break;
+    case 'wake':play('idle','loop');logIt('把它叫醒了');break;
+  }
+}
+document.querySelectorAll('[data-act]').forEach(b=>b.addEventListener('click',()=>interact(b.dataset.act)));
+function preview(n){
+  autoOn=false;$('autoBtn').textContent='AUTO: OFF';$('autoBtn').classList.remove('on');
+  play(n,'loop');logIt('预览动作：'+ANIM[n].label);
+}
+GALLERY.forEach((n,i)=>{
+  const b=document.createElement('button');b.className='btn';b.dataset.name=n;
+  b.textContent=(i+1)+' '+ANIM[n].label;
+  b.addEventListener('click',()=>preview(n));
+  $('gallery').appendChild(b);
+});
+$('autoBtn').classList.add('on');
+$('autoBtn').addEventListener('click',()=>{
+  autoOn=!autoOn;$('autoBtn').textContent='AUTO: '+(autoOn?'ON':'OFF');
+  $('autoBtn').classList.toggle('on',autoOn);
+  if(autoOn){resetIdle();autoRoute();logIt('开启自动托管');}else logIt('切到手动预览模式');
+});
+$('soundBtn').addEventListener('click',()=>{
+  soundOn=!soundOn;$('soundBtn').textContent='SOUND: '+(soundOn?'ON':'OFF');
+  if(soundOn)sfx('happy');
+});
+/* 画布交互 */
+function localX(e){const r=cv.getBoundingClientRect();return (e.clientX-r.left)/r.width;}
+cv.addEventListener('pointerdown',e=>{
+  pointerDown=true;dragging=false;downX=localX(e);cv.setPointerCapture(e.pointerId);
+});
+cv.addEventListener('pointermove',e=>{
+  const x=localX(e);
+  headFollow=Math.max(-3,Math.min(3,(x-.5)*6));
+  if(pointerDown){
+    const dx=(x-downX)*110;
+    if(Math.abs(dx)>5&&!dragging){dragging=true;play('walk','loop');logIt('牵着小宠散步');}
+    if(dragging){dragX=Math.max(-34,Math.min(34,dx));resetIdle();}
+  }
+});
+function endDrag(e){
+  if(!pointerDown)return;pointerDown=false;
+  if(dragging){dragging=false;resetIdle();autoRoute();logIt('松手了，小宠站定');}
+  else{
+    resetIdle();
+    const r=Math.random();
+    if(r<.6){bump('mood',6);play('happy','once','idle');logIt('点了点小宠，它偷偷乐了');}
+    else{bump('exp',3);play('punch','once','idle');logIt('小宠以为你要过招！');}
+  }
+}
+cv.addEventListener('pointerup',endDrag);
+cv.addEventListener('pointercancel',endDrag);
+cv.addEventListener('pointerleave',()=>{headFollow=0;if(pointerDown)endDrag();});
+window.addEventListener('keydown',e=>{
+  if(e.key>='1'&&e.key<='9'){const n=GALLERY[+e.key-1];if(n)preview(n);}
+  else if(e.code==='Space'){e.preventDefault();interact('train');}
+  else if(e.key.toLowerCase()==='t')interact('tea');
+  else if(e.key.toLowerCase()==='a')$('autoBtn').click();
+});
+
+/* ---------------- 主循环 ---------------- */
+let last=performance.now(),statAcc=0;
+function frame(now){
+  const dt=Math.min(60,now-last);last=now;
+  updateAnim(dt);
+  aura+=((['punch','dummy','kick'].includes(animName)?1:0)-aura)*Math.min(1,dt/200);
+  const p=currentPose();
+  drawScene(p,now);drawProps(p,now);drawPet(p,now);drawFx(p,now);
+  if(autoOn&&!dragging){
+    idleSec+=dt/1000;
+    if(idleSec>12&&!boredFired&&['idle','walk','behind'].includes(animName)){
+      boredFired=true;play('bored','loop');logIt('没人理它，小宠开始无聊了');
+    }
+    if(idleSec>26&&!sleepFired&&animName!=='sleep'){
+      sleepFired=true;play('sleep','loop');logIt('小宠靠着墙睡着了');
+    }
+  }
+  statAcc+=dt;
+  if(statAcc>1000){
+    statAcc=0;
+    bump('energy',-.35);bump('tea',-.55);bump('mood',animName==='bored'?-.7:-.22);
+  }
+  requestAnimationFrame(frame);
+}
+paintStats();
+const startPose=decodeURIComponent(location.hash.replace(/^#/,''));
+if(ANIM[startPose]){
+  autoOn=false;$('autoBtn').textContent='AUTO: OFF';$('autoBtn').classList.remove('on');
+  play(startPose,'loop');
+  logIt('从链接进入：直接预览「'+ANIM[startPose].label+'」');
+}else{
+  play('idle','loop');say('……今天也很有精神。');
+  logIt('像素小宠已上线，随时可以出手');
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

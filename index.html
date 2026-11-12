@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PixelPet · 8bit 网页小宠物挂件</title>
+<style>
+  :root{
+    --ink:#141418; --paper:#f5eedd; --card:#fffaf0; --accent:#f2620f; --accent2:#ffc93c;
+    --muted:#6f6551; --line:rgba(20,20,24,.14);
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,"Courier New",monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    font-size:16px; line-height:1.72; -webkit-font-smoothing:antialiased;
+    background-image:linear-gradient(rgba(20,20,24,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(20,20,24,.035) 1px,transparent 1px);
+    background-size:24px 24px;
+  }
+  a{color:inherit}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+
+  /* ---------- header ---------- */
+  header{position:sticky;top:0;z-index:50;background:rgba(245,238,221,.94);border-bottom:2px solid var(--ink);backdrop-filter:blur(6px)}
+  .nav{display:flex;align-items:center;gap:16px;height:64px}
+  .logo{display:flex;align-items:center;gap:12px;font:700 15px/1 var(--mono);letter-spacing:.14em;text-decoration:none}
+  .logo-mark{width:10px;height:10px;background:var(--ink);box-shadow:12px 0 var(--ink),0 12px var(--ink),12px 12px var(--accent);margin-right:10px}
+  .nav .links{display:flex;gap:22px;margin-left:auto;font:600 12px/1 var(--mono);letter-spacing:.08em}
+  .nav .links a{text-decoration:none;padding:6px 2px;border-bottom:2px solid transparent}
+  .nav .links a:hover{border-color:var(--accent)}
+  .nav .tag{font:11px/1 var(--mono);letter-spacing:.12em;padding:5px 8px;border:2px solid var(--ink);background:var(--accent2)}
+  @media (max-width:720px){.nav .links{display:none}}
+
+  /* ---------- hero ---------- */
+  .hero{display:grid;grid-template-columns:1.02fr .98fr;gap:52px;align-items:center;padding:66px 0 54px}
+  .badge{display:inline-flex;align-items:center;gap:8px;background:#fff9e8;border:2px solid var(--ink);
+    padding:5px 10px;font:600 11px/1 var(--mono);letter-spacing:.14em;margin-bottom:22px}
+  .badge i{width:7px;height:7px;background:var(--accent);display:block}
+  h1{font-size:clamp(32px,4.2vw,52px);line-height:1.12;letter-spacing:-.02em;font-weight:800}
+  h1 em{font-style:normal;background:linear-gradient(transparent 64%,var(--accent2) 64%);
+    -webkit-box-decoration-break:clone;box-decoration-break:clone}
+  .lead{margin-top:20px;font-size:16.5px;color:#3d372c;max-width:33em}
+  .lead code{font:13px/1 var(--mono);background:#eadfc2;border:1px solid rgba(20,20,24,.18);padding:2px 5px}
+  .cta{display:flex;flex-wrap:wrap;gap:14px;margin-top:28px}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border:2px solid var(--ink);background:var(--card);
+    color:var(--ink);font:700 14px/1 inherit;font-family:inherit;text-decoration:none;cursor:pointer;
+    box-shadow:4px 4px 0 var(--ink);transition:transform .1s ease,box-shadow .1s ease;border-radius:0}
+  .btn:hover{transform:translate(-1px,-1px);box-shadow:6px 6px 0 var(--ink)}
+  .btn:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+  .btn.primary{background:var(--accent);color:#fff}
+  .meta{margin-top:22px;font:11.5px/1.6 var(--mono);color:var(--muted);letter-spacing:.02em}
+
+  /* ---------- stage ---------- */
+  .stage{position:relative;height:304px;border:2px solid var(--ink);background:#fdf7e6;
+    background-image:radial-gradient(rgba(20,20,24,.13) 1px,transparent 1.4px);background-size:16px 16px;
+    box-shadow:10px 10px 0 rgba(20,20,24,.16);overflow:hidden}
+  .stage .floor{position:absolute;left:0;right:0;bottom:0;height:34px;border-top:2px solid rgba(20,20,24,.35);
+    background:linear-gradient(#f1e3c3,#e5d0a6)}
+  .stage .label{position:absolute;left:10px;top:9px;font:10px/1 var(--mono);letter-spacing:.14em;color:#7a6c53;z-index:2}
+  .stage .mount-tag{position:absolute;right:9px;bottom:8px;font:10px/1 var(--mono);letter-spacing:.1em;color:#7a6c53;z-index:2}
+  .stage .corner{position:absolute;width:10px;height:10px;border:2px solid var(--ink);z-index:2}
+  .stage .c1{left:6px;top:6px;border-right:0;border-bottom:0}
+  .stage .c2{right:6px;top:6px;border-left:0;border-bottom:0}
+  .stage .c3{left:6px;bottom:6px;border-right:0;border-top:0}
+  .stage .c4{right:6px;bottom:6px;border-left:0;border-top:0}
+  .caption{margin-top:14px;font:11.5px/1.7 var(--mono);color:var(--muted);display:flex;gap:8px;align-items:flex-start}
+  .caption b{color:var(--ink)}
+
+  /* ---------- strips ---------- */
+  .strip{border-top:2px solid var(--ink);border-bottom:2px solid var(--ink);background:#efe4ca}
+  .strip ul{display:grid;grid-template-columns:repeat(4,1fr);list-style:none}
+  .strip li{padding:16px 18px;border-right:1px solid rgba(20,20,24,.16)}
+  .strip li:last-child{border-right:0}
+  .strip b{display:block;font:700 12.5px/1 var(--mono);letter-spacing:.1em;margin-bottom:6px}
+  .strip span{font-size:12.5px;color:#5c5344}
+  @media (max-width:820px){.strip ul{grid-template-columns:1fr 1fr}.strip li:nth-child(2){border-right:0}}
+
+  /* ---------- sections ---------- */
+  section{padding:66px 0}
+  .sec-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:30px;flex-wrap:wrap}
+  .kicker{font:700 11px/1 var(--mono);letter-spacing:.2em;color:var(--accent);margin-bottom:10px}
+  h2{font-size:clamp(24px,3vw,34px);line-height:1.2;letter-spacing:-.01em}
+  .sec-head p{max-width:34em;color:#4c4437;font-size:14.5px}
+  hr.rule{border:0;border-top:2px solid var(--ink);margin:0}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start}
+  @media (max-width:880px){.grid2,.hero{grid-template-columns:1fr}.hero{gap:34px}}
+
+  .card{background:var(--card);border:2px solid var(--ink);box-shadow:8px 8px 0 rgba(20,20,24,.13)}
+  .card .hd{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;border-bottom:2px solid var(--ink);background:#efe3c8}
+  .card .hd b{font:700 11.5px/1 var(--mono);letter-spacing:.14em}
+  .card .bd{padding:16px 18px}
+
+  .code{background:#17171d;border:2px solid var(--ink);box-shadow:8px 8px 0 rgba(20,20,24,.18);overflow:hidden}
+  .code .bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;background:#0f0f14;
+    border-bottom:2px solid #2b2b33;color:#a49c8c;font:11px/1 var(--mono);letter-spacing:.12em}
+  .code pre{margin:0;padding:16px 18px;overflow:auto;color:#f4ecd8;font:12.5px/1.75 var(--mono);tab-size:2}
+  .code .k{color:#ff9f6e}.code .s{color:#a8d98a}.code .c{color:#6f6a60}
+  .copy{border:2px solid #3a3a44;background:transparent;color:#e8dfc9;font:11px/1 var(--mono);letter-spacing:.08em;
+    padding:5px 9px;cursor:pointer}
+  .copy:hover{border-color:#ff9f6e;color:#ff9f6e}
+  .note{margin-top:12px;font:11.5px/1.7 var(--mono);color:var(--muted)}
+
+  .tw{overflow-x:auto;border:2px solid var(--ink);background:var(--card);box-shadow:8px 8px 0 rgba(20,20,24,.12)}
+  table{width:100%;min-width:620px;border-collapse:collapse;font-size:14px;background:var(--card)}
+  th,td{padding:10px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{font:700 10.5px/1.4 var(--mono);letter-spacing:.14em;background:#efe3c8;border-bottom:2px solid var(--ink)}
+  td:first-child{white-space:nowrap;font:600 12.5px/1.6 var(--mono)}
+  td code{font:12px/1 var(--mono);background:#f2e7cd;border:1px solid rgba(20,20,24,.2);padding:1px 5px}
+  tr:last-child td{border-bottom:0}
+
+  .beh{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  @media (max-width:880px){.beh{grid-template-columns:1fr 1fr}}
+  @media (max-width:560px){.beh{grid-template-columns:1fr}}
+  .beh .item{background:var(--card);border:2px solid var(--ink);padding:16px 16px 18px;box-shadow:5px 5px 0 rgba(20,20,24,.12)}
+  .beh .item i{display:inline-block;font:700 10.5px/1 var(--mono);letter-spacing:.14em;background:var(--accent2);
+    border:2px solid var(--ink);padding:4px 6px;margin-bottom:12px;font-style:normal}
+  .beh .item h3{font-size:15.5px;margin-bottom:6px}
+  .beh .item p{font-size:13px;color:#4c4437;line-height:1.65}
+
+  /* ---------- playground ---------- */
+  .play{display:grid;grid-template-columns:1fr 320px;gap:26px;align-items:start}
+  @media (max-width:900px){.play{grid-template-columns:1fr}}
+  .ctrl{display:grid;grid-template-columns:1fr 1fr;gap:20px 24px}
+  @media (max-width:560px){.ctrl{grid-template-columns:1fr}}
+  .field{display:flex;flex-direction:column;gap:8px}
+  .field label{font:700 11px/1 var(--mono);letter-spacing:.12em;color:#4c4437}
+  .field .row{display:flex;align-items:center;gap:10px}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;background:#e2d3ae;border:2px solid var(--ink);outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;background:var(--accent);border:2px solid var(--ink);cursor:pointer}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;background:var(--accent);border:2px solid var(--ink);cursor:pointer;border-radius:0}
+  select{font:13px/1 inherit;font-family:inherit;padding:9px 10px;border:2px solid var(--ink);background:var(--card);color:var(--ink);border-radius:0}
+  .chk{display:flex;align-items:center;gap:9px;font-size:13.5px;cursor:pointer;user-select:none}
+  .chk input{width:16px;height:16px;accent-color:var(--accent);border:2px solid var(--ink)}
+  .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+  .btn.sm{padding:9px 13px;font-size:12.5px;box-shadow:3px 3px 0 var(--ink)}
+  .status{margin-top:16px;font:11.5px/1.6 var(--mono);color:var(--muted);border-left:3px solid var(--accent);padding-left:10px}
+  .hintbox{background:#fff9e8;border:2px dashed var(--ink);padding:16px;font-size:13px;color:#4c4437}
+  .hintbox b{display:block;font:700 11px/1 var(--mono);letter-spacing:.14em;margin-bottom:8px;color:var(--ink)}
+
+  footer{border-top:2px solid var(--ink);background:#efe4ca;padding:30px 0 34px}
+  .foot{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font:11.5px/1.9 var(--mono);color:#5c5344}
+  .foot a{text-decoration:none;border-bottom:1px solid rgba(20,20,24,.35)}
+  .foot a:hover{border-color:var(--accent);color:var(--accent)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="#top"><span class="logo-mark"></span>PIXEL PET</a>
+    <span class="tag">v1.0</span>
+    <nav class="links">
+      <a href="#install">植入方式</a>
+      <a href="#options">参数</a>
+      <a href="#behavior">行为</a>
+      <a href="#playground">在线调参</a>
+      <a href="showcase.html">场景版 →</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <div class="wrap">
+    <div class="hero">
+      <div>
+        <span class="badge"><i></i>单文件挂件 · 一行 script 植入</span>
+        <h1>给你的网站，<br><em>养一只 8bit<br>功夫小宠</em></h1>
+        <p class="lead">
+          它会蹲在页面角落打拳、发呆、睡着，也会被你一把拎起来扔到屏幕另一头。
+          透明背景、零依赖、不抢页面焦点，全部内容只有一个 <code>pet-widget.js</code>。
+        </p>
+        <div class="cta">
+          <a class="btn primary" href="#install">拿代码去植入</a>
+          <a class="btn" href="#playground">在线调参</a>
+        </div>
+        <p class="meta">≈ 42 KB 未压缩（gzip 后 ~12 KB）· 无图片资源 · Shadow DOM 隔离样式 · 支持触摸拖拽</p>
+      </div>
+
+      <div>
+        <div class="stage" id="stage">
+          <span class="label">PREVIEW / 试试点它、拖它</span>
+          <span class="mount-tag">inline mount</span>
+          <span class="corner c1"></span><span class="corner c2"></span>
+          <span class="corner c3"></span><span class="corner c4"></span>
+          <div class="floor"></div>
+          <div id="petStage" style="position:absolute;left:0;right:0;top:0;bottom:34px"></div>
+        </div>
+        <p class="caption"><b>↑</b><span>这一只是挂载在卡片容器里的（target 模式），所以被框在格子里；页面右下角那只是默认的悬浮模式。</span></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="strip">
+    <div class="wrap" style="padding:0">
+      <ul>
+        <li><b>零依赖</b><span>不引框架、不带图片，纯 Canvas 逐像素绘制</span></li>
+        <li><b>可拖拽</b><span>按住拎起，松手自由落体 + 弹跳站稳</span></li>
+        <li><b>自动托管</b><span>自己溜达、无聊、打哈欠、睡着</span></li>
+        <li><b>随时卸载</b><span>点 × 或 destroy()，DOM 与动画循环一起清掉</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <section id="install">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <div class="kicker">INSTALL / 植入</div>
+          <h2>两种写法，都是粘贴即用</h2>
+        </div>
+        <p>不需要构建工具。把 <code>pet-widget.js</code> 传到你的站点，引用它就行。</p>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <div class="code">
+            <div class="bar"><span>方法一 · 一行引入（自动初始化）</span><button class="copy" data-copy="c1" type="button">复制</button></div>
+            <pre id="c1">&lt;script src="pet-widget.js"
+        data-pet
+        data-size="160"
+        data-position="bottom-right"&gt;&lt;/script&gt;</pre>
+          </div>
+
+          <div class="code" style="margin-top:26px">
+            <div class="bar"><span>挂进某个容器（不悬浮）</span><button class="copy" data-copy="c3" type="button">复制</button></div>
+            <pre id="c3">&lt;div id="stage" style="position:relative;height:320px"&gt;&lt;/div&gt;
+&lt;script&gt;
+  PixelPet.create({
+    size: 140,
+    target: '#stage',
+    drop: false
+  });
+&lt;/script&gt;</pre>
+          </div>
+        </div>
+
+        <div>
+          <div class="code">
+            <div class="bar"><span>方法二 · 编程控制</span><button class="copy" data-copy="c2" type="button">复制</button></div>
+            <pre id="c2">&lt;script src="pet-widget.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  const pet = PixelPet.create({
+    size: 160,
+    position: 'bottom-right',
+    sound: false,
+    wander: true
+  });
+
+  pet.say('这段字是 pet.say() 说的。');
+&lt;/script&gt;</pre>
+          </div>
+
+          <div class="card" style="margin-top:26px">
+            <div class="hd"><b>几个注意点</b></div>
+            <div class="bd" style="font-size:13.5px;color:#4c4437">
+              <p style="margin-bottom:10px">· 组件使用 Shadow DOM，站点的 CSS 不会影响它，它也不会污染站点样式。</p>
+              <p style="margin-bottom:10px">· 只有角色自己那块区域（约 160×136）会接住鼠标，页面其余部分完全不受影响，不会挡住正文的链接和按钮。</p>
+              <p style="margin-bottom:10px">· 音效默认关闭。浏览器要求用户先交互才能播放，所以点一下控制栏的「声」再开才有效。</p>
+              <p>· 想让它一开始就站在地上，加 <code style="font-family:var(--mono);font-size:12px">drop:false</code>；默认是从上方掉下来。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="note">提示：尺寸建议取 80 的整数倍（80 / 160 / 240），像素边缘最锐利。</p>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section id="options">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <div class="kicker">OPTIONS / 参数</div>
+          <h2>能调的东西不多，但都够用</h2>
+        </div>
+        <p>所有参数都可选，不传就用默认值。</p>
+      </div>
+
+      <div class="tw">
+      <table>
+        <thead><tr><th>参数</th><th>类型</th><th>默认</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td>size</td><td>number</td><td><code>160</code></td><td>挂件宽度（px），高度按 80:68 自动算</td></tr>
+          <tr><td>position</td><td>string</td><td><code>'bottom-right'</code></td><td><code>bottom-right</code> / <code>bottom-left</code> / <code>center</code>，也可直接传数字 x 坐标</td></tr>
+          <tr><td>sound</td><td>boolean</td><td><code>false</code></td><td>音效开关（8bit 方波，程序合成，无音频文件）</td></tr>
+          <tr><td>wander</td><td>boolean</td><td><code>true</code></td><td>是否允许它自己沿页面底部散步</td></tr>
+          <tr><td>controls</td><td>boolean</td><td><code>true</code></td><td>悬停时显示的小控制栏</td></tr>
+          <tr><td>bubble</td><td>boolean</td><td><code>true</code></td><td>是否显示像素对话气泡</td></tr>
+          <tr><td>target</td><td>string / Element</td><td><code>null</code></td><td>挂载容器；传了就变成内联模式，不再全屏悬浮</td></tr>
+          <tr><td>drop</td><td>boolean</td><td><code>true</code></td><td>是否从上方向下掉落着登场</td></tr>
+          <tr><td>margin</td><td>number</td><td><code>24</code></td><td>贴边留白（px）</td></tr>
+          <tr><td>zIndex</td><td>number</td><td><code>2147483000</code></td><td>浮层层级</td></tr>
+          <tr><td>hello</td><td>string</td><td>—</td><td>落地后说的第一句话</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <div class="grid2" style="margin-top:34px">
+        <div class="card">
+          <div class="hd"><b>实例方法</b></div>
+          <div class="bd" style="font-size:13.5px">
+            <p style="margin-bottom:8px"><code style="font-family:var(--mono);font-size:12px">pet.play('punch')</code> 播放动作：idle / bored / tea / punch / dummy / kick / happy / sleep / behind / walk</p>
+            <p style="margin-bottom:8px"><code style="font-family:var(--mono);font-size:12px">pet.say('文字', 毫秒)</code> 弹一句气泡</p>
+            <p style="margin-bottom:8px"><code style="font-family:var(--mono);font-size:12px">pet.setSize(200)</code> 改尺寸</p>
+            <p style="margin-bottom:8px"><code style="font-family:var(--mono);font-size:12px">pet.moveTo(x, y)</code> 扔到指定坐标（会自由落体）</p>
+            <p style="margin-bottom:8px"><code style="font-family:var(--mono);font-size:12px">pet.setSound(true)</code> 开 / 关音效</p>
+            <p><code style="font-family:var(--mono);font-size:12px">pet.destroy()</code> 卸载，恢复页面原样</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="hd"><b>全局接口</b></div>
+          <div class="bd" style="font-size:13.5px">
+            <p style="margin-bottom:8px"><code style="font-family:var(--mono);font-size:12px">PixelPet.create(opts)</code> 创建并挂载，返回实例</p>
+            <p style="margin-bottom:8px"><code style="font-family:var(--mono);font-size:12px">PixelPet.init(opts)</code> 同上（别名）</p>
+            <p style="margin-bottom:8px"><code style="font-family:var(--mono);font-size:12px">PixelPet.instance</code> 一行引入模式下自动创建的那只</p>
+            <p><code style="font-family:var(--mono);font-size:12px">PixelPet.instances</code> 当前所有存活实例</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section id="behavior">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <div class="kicker">BEHAVIOR / 它会做什么</div>
+          <h2>不打扰你，但一直活着</h2>
+        </div>
+        <p>所有动作都是帧间插值，不是图片切换；闲置越久越无聊，最后会直接睡着。</p>
+      </div>
+
+      <div class="beh">
+        <div class="item"><i>01</i><h3>自己溜达</h3><p>闲下来会沿页面底部左右走，走到屏幕边缘自动掉头，走路时身体有起伏。</p></div>
+        <div class="item"><i>02</i><h3>会无聊，也会睡着</h3><p>站久了半闭眼、撇嘴、打哈欠；再久一点闭上眼冒 Z，点一下就能叫醒。</p></div>
+        <div class="item"><i>03</i><h3>点了会还手</h3><p>戳它会乐，或者摆出咏春起手式冲你一拳，带速度线和冲击星。</p></div>
+        <div class="item"><i>04</i><h3>拎得起来</h3><p>按住拖到任意位置，松手后自由落体、落地弹一下、扬起一点尘土再站稳。</p></div>
+        <div class="item"><i>05</i><h3>会喊话</h3><p>像素气泡说几句闲话，2.6 秒自动消失；靠近屏幕边缘时会自动翻到下方，不会被裁掉。</p></div>
+        <div class="item"><i>06</i><h3>全身而退</h3><p>点控制栏的 × 或调 <code style="font-size:11px">destroy()</code>：DOM、事件监听、requestAnimationFrame 一起清干净。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section id="playground">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <div class="kicker">PLAYGROUND / 在线调参</div>
+          <h2>改参数，立刻换一只</h2>
+        </div>
+        <p>改动会作用在页面右下角那只真实的挂件上。</p>
+      </div>
+
+      <div class="play">
+        <div class="card">
+          <div class="hd"><b>参数面板</b><span style="font:10.5px/1 var(--mono);color:#7a6c53">LIVE</span></div>
+          <div class="bd">
+            <div class="ctrl">
+              <div class="field">
+                <label for="pSize">尺寸 SIZE</label>
+                <div class="row">
+                  <input id="pSize" type="range" min="96" max="260" step="8" value="160">
+                  <span id="pSizeOut" style="font:11.5px/1 var(--mono);white-space:nowrap">160 px</span>
+                </div>
+              </div>
+              <div class="field">
+                <label for="pPos">位置 POSITION</label>
+                <select id="pPos">
+                  <option value="bottom-right">右下角</option>
+                  <option value="bottom-left">左下角</option>
+                  <option value="center">底部居中</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>开关</label>
+                <label class="chk"><input id="pSound" type="checkbox"> 音效</label>
+                <label class="chk"><input id="pWander" type="checkbox" checked> 自动走动</label>
+              </div>
+              <div class="field">
+                <label>快捷动作</label>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <button class="btn sm" id="actPunch" type="button">练拳</button>
+                  <button class="btn sm" id="actSay" type="button">说句话</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="btn primary" id="reSpawn" type="button">重新召唤</button>
+              <button class="btn" id="removePet" type="button">收起挂件</button>
+            </div>
+            <p class="status" id="pStatus">当前：160 px · 右下角</p>
+          </div>
+        </div>
+
+        <div class="hintbox">
+          <b>怎么玩</b>
+          <p style="margin-bottom:10px">把鼠标移到右下角小宠身上，它旁边会弹出控制栏：<b style="display:inline;font:inherit">茶 / 拳 / 桩 / 踢 / 蹲 / 乐</b> 六个动作，加上「走、声、×」三个开关。</p>
+          <p style="margin-bottom:10px">直接按住它可以拖到任意位置，松手会掉下来——从高处松手还会空翻，<b style="display:inline;font:inherit">往哪边拖就朝哪边翻</b>，落地站稳。点它一下会触发随机反应。</p>
+          <p>收起之后，用「重新召唤」让它再回来。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <span>PIXEL PET v1.0 · 纯 Canvas 逐像素绘制 · 无图片素材</span>
+    <span><a href="showcase.html">场景版演示</a> · <a href="#install">植入文档</a> · <a href="#top">回到顶部</a></span>
+  </div>
+</footer>
+
+<!-- 挂件：一行引入，自动在右下角出现 -->
+<script src="pet-widget.js" data-pet data-size="160" data-position="bottom-right" data-drop="false"></script>
+<script>
+  /* 卡片里的内联挂件 */
+  PixelPet.create({
+    size: 176,
+    target: '#petStage',
+    position: 'center',
+    drop: false,
+    controls: true,
+    hello: '点我，或者拖我。'
+  });
+
+  var pet = PixelPet.instance;
+  var sizeEl = document.getElementById('pSize');
+  var sizeOut = document.getElementById('pSizeOut');
+  var posEl = document.getElementById('pPos');
+  var sndEl = document.getElementById('pSound');
+  var wdEl = document.getElementById('pWander');
+  var statusEl = document.getElementById('pStatus');
+
+  function label(){
+    return sizeEl.value + ' px · ' + posEl.options[posEl.selectedIndex].text;
+  }
+  function status(t){ statusEl.textContent = '当前：' + t; }
+
+  function spawn(){
+    if (pet) { pet.destroy(); pet = null; }
+    pet = PixelPet.create({
+      size: parseInt(sizeEl.value, 10),
+      position: posEl.value,
+      sound: sndEl.checked,
+      wander: wdEl.checked
+    });
+    PixelPet.instance = pet;
+    status(label());
+  }
+
+  sizeEl.addEventListener('input', function(){
+    sizeOut.textContent = sizeEl.value + ' px';
+    if (pet) pet.setSize(parseInt(sizeEl.value, 10));
+  });
+  sizeEl.addEventListener('change', function(){ if (pet) status(label()); });
+  posEl.addEventListener('change', function(){ spawn(); });
+  sndEl.addEventListener('change', function(){ if (pet) pet.setSound(sndEl.checked); });
+  wdEl.addEventListener('change', function(){
+    if (pet) { pet.wander = wdEl.checked; status(label() + ' · 走动' + (wdEl.checked ? '开' : '关')); }
+  });
+
+  document.getElementById('reSpawn').addEventListener('click', spawn);
+  document.getElementById('removePet').addEventListener('click', function(){
+    if (pet) { pet.destroy(); pet = null; }
+    status('已收起，点「重新召唤」再叫它出来');
+  });
+  document.getElementById('actPunch').addEventListener('click', function(){
+    if (pet) { pet.play('punch', 'once'); pet.say('我要打十个！'); }
+  });
+  document.getElementById('actSay').addEventListener('click', function(){
+    if (pet) pet.say('这行字是 pet.say() 说的。');
+  });
+
+  /* 复制代码 */
+  document.querySelectorAll('.copy').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var el = document.getElementById(btn.dataset.copy);
+      var txt = el.innerText;
+      var done = function(ok){
+        btn.textContent = ok ? '已复制' : '请手动选';
+        setTimeout(function(){ btn.textContent = '复制'; }, 1400);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt).then(function(){ done(true); }, function(){ done(false); });
+      } else {
+        try {
+          var r = document.createRange(); r.selectNodeContents(el);
+          var s = getSelection(); s.removeAllRanges(); s.addRange(r);
+          document.execCommand('copy'); done(true);
+        } catch (e) { done(false); }
+      }
+    });
+  });
+</script>
+</body>
+</html>
